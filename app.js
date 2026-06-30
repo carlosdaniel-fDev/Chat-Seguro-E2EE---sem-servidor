@@ -51,6 +51,10 @@ const emojiPopover = document.getElementById('emoji-popover');
 const copyLinkBtn2 = document.getElementById('copy-link-btn-2');
 
 // ---------- Utilidades ----------
+function generateMessageId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+}
+
 function extractPeerIdFromInput(raw) {
   const value = (raw || '').trim();
   if (!value) return '';
@@ -275,10 +279,18 @@ async function handleData(data) {
       if (!sharedKey) return;
       try {
         const text = await decryptMessage(sharedKey, data.ciphertext, data.iv);
-        addMessage(peerNickname, text, false);
+        addMessage(peerNickname, text, false, data.id);
+        // Confirma que a mensagem foi visualizada (estilo "✓✓ visto").
+        if (data.id && conn) {
+          conn.send({ type: 'seen', id: data.id });
+        }
       } catch (e) {
         console.error('Falha ao descriptografar', e);
       }
+      break;
+    }
+    case 'seen': {
+      markMessageAsSeen(data.id);
       break;
     }
     case 'typing': {
@@ -341,22 +353,41 @@ function addSystemMessage(text) {
   messagesArea.scrollTop = messagesArea.scrollHeight;
 }
 
-function addMessage(from, text, mine) {
+function addMessage(from, text, mine, messageId) {
   const bubble = document.createElement('div');
   bubble.className = 'bubble ' + (mine ? 'mine' : 'theirs');
+  if (messageId) bubble.dataset.msgId = messageId;
 
   const textEl = document.createElement('div');
   textEl.className = 'bubble-text';
   textEl.textContent = text;
 
-  const timeEl = document.createElement('div');
-  timeEl.className = 'bubble-time';
-  timeEl.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const timeRow = document.createElement('div');
+  timeRow.className = 'bubble-time';
+  timeRow.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  if (mine) {
+    const check = document.createElement('span');
+    check.className = 'msg-check';
+    check.textContent = '✓';
+    timeRow.appendChild(check);
+  }
 
   bubble.appendChild(textEl);
-  bubble.appendChild(timeEl);
+  bubble.appendChild(timeRow);
   messagesArea.appendChild(bubble);
   messagesArea.scrollTop = messagesArea.scrollHeight;
+}
+
+function markMessageAsSeen(messageId) {
+  if (!messageId) return;
+  const bubble = messagesArea.querySelector(`.bubble[data-msg-id="${messageId}"]`);
+  if (!bubble) return;
+  const check = bubble.querySelector('.msg-check');
+  if (check) {
+    check.textContent = '✓✓';
+    check.classList.add('read');
+  }
 }
 
 // ---------- Envio de mensagens ----------
@@ -364,8 +395,9 @@ async function sendMessage() {
   const text = textInput.value.trim();
   if (!text || turn !== myNickname || !sharedKey || !conn) return;
   const { ciphertext, iv } = await encryptMessage(sharedKey, text);
-  conn.send({ type: 'message', ciphertext, iv });
-  addMessage(myNickname, text, true);
+  const id = generateMessageId();
+  conn.send({ type: 'message', id, ciphertext, iv });
+  addMessage(myNickname, text, true, id);
   textInput.value = '';
   conn.send({ type: 'typing', isTyping: false });
   updateInputState();
