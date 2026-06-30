@@ -241,7 +241,16 @@ html, body {
 .chat-screen.dark .bubble.mine { background: var(--bubble-mine-dark); color: #e9edef; }
 .chat-screen.dark .bubble.theirs { background: var(--bubble-theirs-dark); color: #e9edef; }
 
-.bubble-time { font-size: 10px; color: #667781; text-align: right; margin-top: 2px; }
+.bubble-time { font-size: 10px; color: #667781; text-align: right; margin-top: 2px; display: flex; justify-content: flex-end; align-items: center; gap: 3px; }
+
+.msg-check {
+  font-size: 11px;
+  color: #8696a0;
+  letter-spacing: -1px;
+}
+.msg-check.read {
+  color: #53bdeb;
+}
 
 .chat-input-bar {
   display: flex;
