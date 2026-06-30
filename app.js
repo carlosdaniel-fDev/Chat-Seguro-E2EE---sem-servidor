@@ -270,13 +270,24 @@ async function handleData(data) {
       updateTurnUI();
       break;
     }
+    case 'release-turn':
     case 'pass-turn': {
-      turn = data.turn;
-      // Validação extra: garante que o turn é sempre um nickname válido
-      if (!turn || (turn !== myNickname && turn !== peerNickname)) {
-        console.warn('Turn inválido recebido:', data.turn);
-        turn = myNickname; // Fallback: passa para mim se for inválido
+      // Aceita tanto 'release-turn' quanto 'pass-turn' para compatibilidade
+      const newTurn = data.newTurn || data.turn;
+      if (!newTurn) {
+        console.warn('Comando de liberação recebido, mas sem newTurn/turn');
+        break;
       }
+      
+      // Validação: o novo turn deve ser um nickname válido
+      if (newTurn !== myNickname && newTurn !== peerNickname) {
+        console.warn('Turn inválido recebido:', newTurn);
+        break;
+      }
+      
+      turn = newTurn;
+      console.log(`[DEBUG] Vez passou para: ${turn}`);
+      addSystemMessage(`⏳ Agora é a vez de ${turn}`);
       updateTurnUI();
       break;
     }
@@ -426,9 +437,21 @@ textInput.addEventListener('input', () => {
 
 passBtn.addEventListener('click', () => {
   if (turn !== myNickname || !conn) return;
+  
   // Passa a vez para o outro usuário
-  turn = peerNickname;
-  conn.send({ type: 'pass-turn', turn: peerNickname });
+  // Envia mensagem de LIBERAÇÃO/DESBLOQUEIO
+  const newTurn = peerNickname;
+  turn = newTurn;
+  
+  // Envia a mensagem oculta de liberação da vez
+  conn.send({ 
+    type: 'release-turn',
+    newTurn: newTurn,
+    from: myNickname
+  });
+  
+  console.log(`[DEBUG] Liberando vez para: ${newTurn}`);
+  addSystemMessage(`✅ Você passou a vez para ${newTurn}`);
   updateTurnUI();
 });
 
