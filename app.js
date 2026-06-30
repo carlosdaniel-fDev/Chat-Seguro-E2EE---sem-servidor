@@ -219,10 +219,10 @@ async function setupConnection(dataConn, initiator) {
   conn = dataConn;
 
   conn.on('open', async () => {
-    peerNickname = conn.metadata?.nickname || conn.peer;
+    peerNickname = initiator ? null : (conn.metadata?.nickname || conn.peer);
     showChatScreen();
     updatePeerHeader();
-    addSystemMessage(`Usuário ${peerNickname} entrou no chat`);
+    if (peerNickname) addSystemMessage(`Usuário ${peerNickname} entrou no chat`);
 
     keyPair = await generateKeyPair();
     const jwk = await exportPublicKeyJwk(keyPair);
@@ -258,8 +258,10 @@ async function setupConnection(dataConn, initiator) {
 async function handleData(data) {
   switch (data.type) {
     case 'public-key': {
-      if (!peerNickname) peerNickname = data.nickname;
+      const hadNickname = !!peerNickname;
+      peerNickname = data.nickname || peerNickname;
       updatePeerHeader();
+      if (!hadNickname && peerNickname) addSystemMessage(`Usuário ${peerNickname} entrou no chat`);
       const peerPublicKey = await importPublicKeyJwk(data.jwk);
       sharedKey = await deriveSharedKey(keyPair.privateKey, peerPublicKey);
       peerStatusEl.textContent = '🔒 Criptografado';
@@ -286,6 +288,7 @@ async function handleData(data) {
       }
       
       turn = newTurn;
+      updateTurnUI();
       console.log(`[DEBUG] Vez passou para: ${turn}`);
       addSystemMessage(`⏳ Agora é a vez de ${turn}`);
       updateTurnUI();
@@ -442,7 +445,8 @@ passBtn.addEventListener('click', () => {
   const newTurn = peerNickname;
   
   // Envia a mensagem oculta de liberação da vez
-  // NÃO atualiza turn localmente - deixa o handleData fazer isso
+  turn = newTurn;
+  updateTurnUI();
   conn.send({ 
     type: 'release-turn',
     newTurn: newTurn,
