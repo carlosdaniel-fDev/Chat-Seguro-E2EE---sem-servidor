@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>Chat Seguro E2EE (P2P)</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ===================== TELA DE ENTRADA ===================== -->
+  <div id="entry-screen" class="entry-screen">
+    <div class="entry-card">
+      <div class="entry-header">
+        <div class="logo-circle">💬</div>
+        <h1>Chat Seguro E2EE</h1>
+        <p>Conexão P2P direta (WebRTC) + criptografia ponta a ponta. Nenhum servidor lê suas mensagens.</p>
+      </div>
+
+      <div id="invite-banner" class="invite-banner" style="display:none;">
+        Você foi convidado por <strong id="invite-from"></strong> 🎉
+      </div>
+
+      <form id="entry-form" class="entry-form">
+        <label>Seu apelido</label>
+        <div class="id-row">
+          <input id="my-id-input" type="text" />
+          <button type="button" id="reroll-btn" class="ghost-btn" title="Gerar novo apelido">🎲</button>
+        </div>
+
+        <div id="peer-id-group">
+          <label>Link ou ID do outro usuário (opcional)</label>
+          <input id="peer-id-input" type="text" placeholder="Cole aqui se já tiver um convite" />
+        </div>
+
+        <label>Senha da sala (opcional)</label>
+        <input id="room-password-input" type="password" placeholder="Defina ou informe a senha" />
+
+        <div id="entry-error" class="entry-error" style="display:none;"></div>
+
+        <button type="submit" id="join-btn" class="primary-btn">Entrar no chat</button>
+      </form>
+
+      <p class="entry-hint">Seu ID de conexão é gerado automaticamente (evita conflitos). Depois de entrar, use o botão 🔗 para copiar seu link de convite.</p>
+
+      <label class="theme-toggle">
+        <input type="checkbox" id="dark-mode-toggle" />
+        Modo escuro
+      </label>
+    </div>
+  </div>
+
+  <!-- ===================== TELA DO CHAT ===================== -->
+  <div id="chat-screen" class="chat-screen" style="display:none;">
+    <header class="chat-header">
+      <div class="header-info">
+        <div class="avatar" id="peer-avatar">?</div>
+        <div>
+          <div class="header-name" id="peer-name">Aguardando usuário...</div>
+          <div class="header-status" id="peer-status">Offline</div>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="ghost-btn" id="copy-link-btn-2" title="Copiar link de convite">🔗</button>
+        <button class="ghost-btn" id="dark-toggle-2">🌙</button>
+      </div>
+    </header>
+
+    <div id="turn-banner" class="turn-banner their-turn">Aguardando conexão...</div>
+
+    <div id="messages-area" class="messages-area"></div>
+
+    <footer class="chat-input-bar">
+      <button class="ghost-btn" id="emoji-btn">😊</button>
+      <div id="emoji-popover" class="emoji-popover" style="display:none;"></div>
+      <input id="text-input" class="text-input" placeholder="Aguarde sua vez para digitar..." disabled />
+      <button class="send-btn" id="send-btn" disabled>➤</button>
+      <button class="pass-btn" id="pass-btn" disabled>Passar vez</button>
+    </footer>
+  </div>
+
+  <!-- PeerJS: lida com a sinalização WebRTC (broker público e gratuito).
+       O conteúdo das mensagens nunca passa por esse servidor. -->
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <script src="crypto.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
