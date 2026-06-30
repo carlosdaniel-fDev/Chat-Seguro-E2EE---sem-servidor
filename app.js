@@ -232,7 +232,7 @@ async function setupConnection(dataConn, initiator) {
       // Quem estava esperando (não iniciou a conexão) começa com a vez,
       // igual ao comportamento original: primeiro a entrar tem a vez.
       turn = myNickname;
-      conn.send({ type: 'turn-init', turn });
+      conn.send({ type: 'turn-init', turn: myNickname });
       updateTurnUI();
     }
   });
@@ -275,7 +275,7 @@ async function handleData(data) {
       // Validação extra: garante que o turn é sempre um nickname válido
       if (!turn || (turn !== myNickname && turn !== peerNickname)) {
         console.warn('Turn inválido recebido:', data.turn);
-        turn = peerNickname; // Fallback seguro
+        turn = myNickname; // Fallback: passa para mim se for inválido
       }
       updateTurnUI();
       break;
@@ -426,6 +426,7 @@ textInput.addEventListener('input', () => {
 
 passBtn.addEventListener('click', () => {
   if (turn !== myNickname || !conn) return;
+  // Passa a vez para o outro usuário
   turn = peerNickname;
   conn.send({ type: 'pass-turn', turn: peerNickname });
   updateTurnUI();
