@@ -438,12 +438,11 @@ textInput.addEventListener('input', () => {
 passBtn.addEventListener('click', () => {
   if (turn !== myNickname || !conn) return;
   
-  // Passa a vez para o outro usuário
-  // Se a vez é minha, passa para o outro; se for do outro, volta para mim
-  const newTurn = (turn === myNickname) ? peerNickname : myNickname;
-  turn = newTurn;
+  // Calcula quem recebe a vez: sempre o outro usuário
+  const newTurn = peerNickname;
   
   // Envia a mensagem oculta de liberação da vez
+  // NÃO atualiza turn localmente - deixa o handleData fazer isso
   conn.send({ 
     type: 'release-turn',
     newTurn: newTurn,
@@ -452,11 +451,10 @@ passBtn.addEventListener('click', () => {
   
   console.log(`[DEBUG] Liberando vez para: ${newTurn}`);
   addSystemMessage(`✅ Você passou a vez para ${newTurn}`);
-  updateTurnUI();
 });
 
 // ---------- Emojis ----------
-const EMOJIS = ['😀','😂','😍','😎','🥳','😢','😡','👍','��','❤️','🔥','🎉','🤔','😴','👀','✅','💬','🚀','🙌','😅'];
+const EMOJIS = ['😀','😂','😍','😎','🥳','😢','😡','👍','🙏','❤️','🔥','🎉','🤔','😴','👀','✅','💬','🚀','🙌','😅'];
 EMOJIS.forEach((emoji) => {
   const btn = document.createElement('button');
   btn.type = 'button';
