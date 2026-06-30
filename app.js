@@ -439,8 +439,8 @@ passBtn.addEventListener('click', () => {
   if (turn !== myNickname || !conn) return;
   
   // Passa a vez para o outro usuário
-  // Envia mensagem de LIBERAÇÃO/DESBLOQUEIO
-  const newTurn = peerNickname;
+  // Se a vez é minha, passa para o outro; se for do outro, volta para mim
+  const newTurn = (turn === myNickname) ? peerNickname : myNickname;
   turn = newTurn;
   
   // Envia a mensagem oculta de liberação da vez
@@ -456,7 +456,7 @@ passBtn.addEventListener('click', () => {
 });
 
 // ---------- Emojis ----------
-const EMOJIS = ['😀','😂','😍','😎','🥳','😢','😡','👍','🙏','❤️','🔥','🎉','🤔','😴','👀','✅','💬','🚀','🙌','😅'];
+const EMOJIS = ['😀','😂','😍','😎','🥳','😢','😡','👍','��','❤️','🔥','🎉','🤔','😴','👀','✅','💬','🚀','🙌','😅'];
 EMOJIS.forEach((emoji) => {
   const btn = document.createElement('button');
   btn.type = 'button';
