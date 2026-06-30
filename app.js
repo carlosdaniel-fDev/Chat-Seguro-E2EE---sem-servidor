@@ -272,6 +272,11 @@ async function handleData(data) {
     }
     case 'pass-turn': {
       turn = data.turn;
+      // Validação extra: garante que o turn é sempre um nickname válido
+      if (!turn || (turn !== myNickname && turn !== peerNickname)) {
+        console.warn('Turn inválido recebido:', data.turn);
+        turn = peerNickname; // Fallback seguro
+      }
       updateTurnUI();
       break;
     }
@@ -422,7 +427,7 @@ textInput.addEventListener('input', () => {
 passBtn.addEventListener('click', () => {
   if (turn !== myNickname || !conn) return;
   turn = peerNickname;
-  conn.send({ type: 'pass-turn', turn });
+  conn.send({ type: 'pass-turn', turn: peerNickname });
   updateTurnUI();
 });
 
